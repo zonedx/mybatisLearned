@@ -55,5 +55,6 @@
         user.id=fm.user_id
         AND
         user.id=#{id}
+
     </select>
 </mapper>
