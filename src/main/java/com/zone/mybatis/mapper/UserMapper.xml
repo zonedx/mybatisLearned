@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-mybatis.org/DTD config 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<!--namespace命名空间，作用就是对sql进行分类化管理，理解sql隔离
+注意：使用mapper代理方法开发，namespace有特殊重要的作用，namespace等于mapper接口地址
+-->
+<mapper namespace="com.zone.mybatis.mapper.UserMapper">
+    <select id="findUserById" parameterType="int" resultType="user">
+        SELECT * FROM USER WHERE id=#{value}
+    </select>
+
+    <!-- 第一种方式：在insert标签中直接加上 keyProperty="id" useGeneratedKeys="true"-->
+    <insert id="insertUser" parameterType="user" keyProperty="iss" useGeneratedKeys="true">
+        <!--  第二种方式：
+              得到刚insert进去记录的主键值，只适用于自增主键
+              keyProperty：将查询到主键值设置到parameterType指定的对象的某个属性
+              order：执行顺序，相对于insert来说
+              resultType：SELECT LAST_INSERT_ID()结果类型
+          -->
+        <!--<selectKey keyProperty="id" order="AFTER" resultType="int">-->
+            <!--SELECT LAST_INSERT_ID()-->
+        <!--</selectKey>-->
+        INSERT INTO USER(NAME,SEX,birthday) VALUES(#{name},#{sex},#{birthday})
+    </insert>
+    
+    <delete id="deleteUser" parameterType="int">
+        DELETE FROM USER WHERE id=#{id}
+    </delete>
+
+    <update id="updateUser" parameterType="user">
+        UPDATE USER 
+        <set>
+            <if test="name!=null">name =#{name},</if>
+            <if test="sex!=null">sex=#{sex},</if>
+            <if test="birthday!=null">birthday=#{birthday}</if>
+        </set>
+        WHERE id=#{id}
+    </update>
+
+    <!-- 这里遇到了一个问题，返回的 family_member_name 始终为空
+         原因在于UserVo字段名为familyMemberName，不对应！
+    -->
+    <resultMap id="UserVoMap" type="com.zone.mybatis.entity.UserVo">
+        <id column="id" property="id"/>
+        <result column="family_member_name" property="familyMemberName"/>
+    </resultMap>
+    <select id="findUserVo" parameterType="int" resultMap="UserVoMap">
+        SELECT user.id,name,birthday,fm.family_member_name
+        FROM
+        user
+        JOIN
+        family_member fm
+        WHERE
+        user.id=fm.user_id
+        AND
+        user.id=#{id}
+    </select>
+</mapper>
